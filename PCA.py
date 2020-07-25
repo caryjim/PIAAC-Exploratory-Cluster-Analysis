@@ -1,20 +1,60 @@
+from time import time
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import metrics
+from sklearn.cluster import KMeans
+from sklearn.datasets import load_digits
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import scale
+
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
 """ Use PCA to reduce dimensions """
-### Run PCA on the data and reduce the dimensions in pca_num_components dimensions
-## Reference: https://datascience.stackexchange.com/a/48752
-reduced_data = PCA(n_components=5).fit_transform(data1)
-results = pd.DataFrame(reduced_data, columns=['pca1', 'pca2', 'pca3', 'pca4', 'pac5'])
-# Scatterplot of PCA 1 and PCA 2
-sns.scatterplot(x="pca1", y="pca2", hue=data['cluster'], data=results)
-plt.title('K-means Clustering with 2 dimensions')
+""" K-means clustering with PCA """
+# Run PCA on the data and reduce the dimensions in pca_num_components dimensions
+# Ref: https://365datascience.com/pca-k-means/
+
+""" Standardization of the data"""
+scaler = StandardScaler()
+data_std = scaler.fit_transform(bkg_lit_num_cleaned)
+
+pca = PCA()
+pca.fit(data_std)
+
+# How much variance is explained by each of the components?
+pca.explained_variance_ratio_
+
+plt.figure()
+plt.plot(pca.explained_variance_ratio_.cumsum(), marker = 'o', linestyle = '--')
+plt.grid(True)
+plt.title('Explained Variance by Components')
+plt.xlabel('Number of Components')
+plt.ylabel('Cumulative Explained Variance')
 plt.show()
 
-## Cluster of 10
-# Conduct clustering and add a cluster column to the data table
-clustering_kmeans2 = KMeans(n_clusters=10)
-data['cluster2'] = clustering_kmeans2.fit_predict(data)
-# Cluster is recorded as integer which won't run in PCA
-data.info()
-data['cluster2'] = data['cluster2'].astype(float)
+# If we use 80% rule to preserve the variance
+pca = PCA(n_components= 8)
+pca.fit(data_std)
+pca.transform(data_std)
+scores_pca = pca.transform(data_std)
+
+# K mean clustering with PCA
+wcss = []
+for i in range (1, 25):
+    kmeans_pca = KMeans(n_clusters= i, init= "k-means++", random_state= 42)
+    kmeans_pca.fit(scores_pca)
+    wcss.append(kmeans_pca.inertia_)
+
+plt.figure()
+plt.plot(range(1, 25), wcss, marker='o')
+plt.grid()
+plt.xlabel("WCSS")
+plt.ylabel('K-means with PCA clustering')
+plt.show()
+
+kmeans_pca = KMeans(n_clusters=5, init='k-means++', random_state= 42)
+kmeans_pca.fit(scores_pca)
 
 
 ### Run PCA on the data and reduce the dimensions in pca_num_components dimensions
